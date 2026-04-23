@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Nexus 5 Sovereign</title>
+    <script src="https://unpkg.com/lucide@0.473.0/dist/umd/lucide.min.js"></script>
+    <style>
+        :root { --glass: rgba(10, 15, 30, 0.8); --border: rgba(255, 255, 255, 0.1); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; font-family: 'Inter', sans-serif; color: white; }
+        
+        .desktop { height: 100vh; width: 100vw; background: radial-gradient(circle at 50% 50%, #0f172a, #000); position: relative; }
+
+        /* GRID */
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; padding: 40px 20px; }
+        .node { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; }
+        .icon { width: 60px; height: 60px; background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+        .label { font-size: 10px; font-weight: 700; letter-spacing: 1px; opacity: 0.5; text-transform: uppercase; }
+
+        /* WINDOWS */
+        .win { position: absolute; inset: 50px 15px 90px 15px; z-index: 100; display: none; flex-direction: column; background: var(--glass); backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px); border: 1px solid var(--border); border-radius: 24px; overflow: hidden; box-shadow: 0 50px 100px rgba(0,0,0,0.8); }
+        .win.active { display: flex; animation: open 0.2s ease-out; }
+        @keyframes open { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+        .win-bar { padding: 15px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .win-body { flex: 1; padding: 25px; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+        /* TASKBAR */
+        .taskbar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: rgba(0,0,0,0.95); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
+        .tray { display: flex; align-items: center; gap: 20px; font-size: 10px; font-weight: 800; opacity: 0.5; }
+        .pulse { width: 10px; height: 10px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 10px rgba(74, 222, 128, 0.3); }
+
+        input { width: 100%; background: rgba(255,255,255,0.05); border: none; border-radius: 12px; padding: 15px; color: #fff; margin-top: 20px; font-family: inherit; }
+    </style>
+</head>
+<body>
+
+    <div class="desktop">
+        <div class="grid">
+            <div class="node" onclick="ui.toggle('agency')">
+                <div class="icon"><i data-lucide="briefcase" color="#fbbf24"></i></div>
+                <span class="label">Agency</span>
+            </div>
+            <div class="node" onclick="ui.toggle('term')">
+                <div class="icon"><i data-lucide="terminal" color="#818cf8"></i></div>
+                <span class="label">Console</span>
+            </div>
+            <a href="intent://#Intent;scheme=android-app;package=com.cloudflare.onedotonedotonedotone;end" class="node" style="text-decoration:none">
+                <div class="icon"><i data-lucide="shield-check" color="#3b82f6"></i></div>
+                <span class="label">Secure</span>
+            </a>
+        </div>
+
+        <div id="agency" class="win">
+            <div class="win-bar"><span style="color:#fbbf24; font-size:10px; font-weight:900;">AGENCY CORE</span><i data-lucide="x" onclick="ui.toggle('agency')" style="cursor:pointer"></i></div>
+            <div class="win-body">
+                <div id="a-log">> Initializing High-Ticket Research...</div>
+                <input type="text" placeholder="Target Industry..." onkeypress="ui.run(event, 'a-log')">
+            </div>
+        </div>
+
+        <div id="term" class="win">
+            <div class="win-bar"><span style="opacity:0.5; font-size:10px; font-weight:900;">SYSTEM COMMAND</span><i data-lucide="x" onclick="ui.toggle('term')" style="cursor:pointer"></i></div>
+            <div class="win-body">
+                <div id="t-log">> Nexus v3.0 // Sovereign Mode</div>
+                <input type="text" placeholder="Execute command..." onkeypress="ui.run(event, 't-log')">
+            </div>
+        </div>
+
+        <div class="taskbar">
+            <div class="tray"><div class="pulse"></div> <span>ENCRYPTED</span></div>
+            <div class="tray">
+                <i data-lucide="battery"></i> <span id="bat">100%</span>
+                <span id="clock">00:00</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const ui = {
+            toggle: (id) => document.getElementById(id).classList.toggle('active'),
+            run: (e, logId) => {
+                if(e.key === 'Enter') {
+                    document.getElementById(logId).innerHTML += `<br><span style="color:#fff">> ${e.target.value}</span>`;
+                    e.target.value = '';
+                }
+            }
+        };
+
+        // Battery System (Hardened)
+        if('getBattery' in navigator) {
+            navigator.getBattery().then(b => {
+                const up = () => document.getElementById('bat').innerText = Math.round(b.level * 100) + "%";
+                up(); b.addEventListener('levelchange', up);
+            });
+        }
+
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        }, 1000);
+    </script>
+</body>
+</html>
