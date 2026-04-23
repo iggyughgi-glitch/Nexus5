@@ -2,143 +2,70 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nexus 5 Sovereign OS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Nexus 5 Desktop</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        :root { --accent: #3b82f6; --bg: #020617; --glass: rgba(15, 23, 42, 0.85); }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: var(--bg); font-family: 'Inter', system-ui, sans-serif; color: white; }
+        :root { --glass: rgba(10, 15, 30, 0.9); --border: rgba(255,255,255,0.1); --accent: #3b82f6; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; font-family: 'Inter', sans-serif; color: white; }
         
-        .workspace {
-            height: 100vh; width: 100vw;
-            background: radial-gradient(circle at top right, #1e293b, #020617);
-            position: relative; overflow: hidden;
-        }
+        .desktop { height: 100vh; width: 100vw; background: radial-gradient(circle at center, #1e293b, #000); position: relative; }
 
-        /* PC DESKTOP LAYOUT */
-        .desktop-icons {
-            display: grid; grid-template-columns: repeat(auto-fill, 90px); 
-            grid-template-rows: repeat(auto-fill, 100px);
-            gap: 15px; padding: 25px; height: calc(100% - 50px);
-        }
-        .app-node {
-            display: flex; flex-direction: column; align-items: center; gap: 8px;
-            cursor: pointer; padding: 10px; border-radius: 12px; transition: 0.2s;
-        }
-        .app-node:active { background: rgba(255,255,255,0.05); transform: scale(0.95); }
-        .app-icon { 
-            width: 48px; height: 48px; background: var(--glass); 
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        .app-label { font-size: 10px; font-weight: 500; text-align: center; opacity: 0.7; letter-spacing: 0.5px; }
+        /* DESKTOP FOLDERS */
+        .icon-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 40px 20px; }
+        .node { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+        .folder-icon { width: 60px; height: 60px; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
+        .node-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
 
-        /* FLOATING WINDOWS */
-        .win {
-            position: absolute; top: 15%; left: 5%; width: 90%; height: 60%;
-            z-index: 100; display: none; flex-direction: column;
-            background: var(--glass); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-        }
-        .win.active { display: flex; animation: boot 0.25s ease-out; }
-        @keyframes boot { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        /* EXPLORER WINDOW */
+        .win { position: absolute; inset: 60px 15px 90px 15px; z-index: 100; display: none; flex-direction: column; background: var(--glass); backdrop-filter: blur(40px); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
+        .win.active { display: flex; }
+        .win-bar { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); }
+        .win-body { flex: 1; padding: 20px; overflow-y: auto; }
+
+        /* FILE LIST */
+        .file-list { display: flex; flex-direction: column; gap: 10px; }
+        .file-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 10px; font-family: monospace; font-size: 12px; }
         
-        .win-head { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .win-body { flex: 1; padding: 20px; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6; }
-
-        /* SOVEREIGN TASKBAR */
-        .taskbar {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 50px;
-            background: rgba(0,0,0,0.9); border-top: 1px solid rgba(255,255,255,0.05);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 15px; z-index: 1000;
-        }
-        .sys-tray { display: flex; align-items: center; gap: 20px; }
-        .pulse-trigger { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-        .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
-        .pulse-dot.active { background: #f87171; box-shadow: 0 0 12px #f87171; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.3; } }
-
-        /* CONSOLE INPUT */
-        .console-input { background: rgba(0,0,0,0.2); border: none; width: 100%; color: #94a3b8; padding: 10px; border-radius: 8px; }
-
-        /* EPHEMERAL OVERLAY */
-        .vault-overlay {
-            position: fixed; inset: 0; background: #000; z-index: 9999;
-            display: none; align-items: center; justify-content: center;
-        }
-        .vault-overlay.active { display: flex; }
+        .taskbar { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: rgba(0,0,0,0.9); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; }
     </style>
 </head>
 <body>
 
-    <div class="workspace" id="ws">
-        <div class="desktop-icons">
-            <div class="app-node" onclick="ui.open('term')">
-                <div class="app-icon"><i data-lucide="terminal" color="#818cf8"></i></div>
-                <span class="app-label">Terminal</span>
+    <div class="desktop">
+        <div class="icon-grid">
+            <div class="node" onclick="ui.toggle('explorer')">
+                <div class="folder-icon"><i data-lucide="folder" color="#3b82f6"></i></div>
+                <span class="node-label">Root_Drive</span>
             </div>
-            <div class="app-node" onclick="ui.open('vault')">
-                <div class="app-icon"><i data-lucide="lock" color="#f87171"></i></div>
-                <span class="app-label">Vault</span>
+            <div class="node" onclick="ui.toggle('term')">
+                <div class="folder-icon" style="background:rgba(129, 140, 248, 0.2); border-color:rgba(129, 140, 248, 0.4);"><i data-lucide="terminal" color="#818cf8"></i></div>
+                <span class="node-label">Terminal</span>
             </div>
-            <div class="app-node" onclick="ui.open('music')">
-                <div class="app-icon"><i data-lucide="waves" color="#4ade80"></i></div>
-                <span class="app-label">Audio</span>
-            </div>
-            <a href="intent://#Intent;scheme=android-app;package=com.cloudflare.onedotonedotonedotone;end" class="app-node" style="text-decoration:none;">
-                <div class="app-icon"><i data-lucide="shield-check" color="#3b82f6"></i></div>
-                <span class="app-label">Privacy</span>
-            </a>
-            <a href="https://www.google.com" target="_blank" class="app-node" style="text-decoration:none;">
-                <div class="app-icon"><i data-lucide="globe" color="#22d3ee"></i></div>
-                <span class="app-label">S-Web</span>
-            </a>
         </div>
 
-        <div id="term" class="win">
-            <div class="win-head">
-                <span style="font-size:10px; font-weight:700; letter-spacing:1px; opacity:0.5;">PSE // TERMINAL</span>
-                <i data-lucide="x" size="16" onclick="ui.close('term')" style="cursor:pointer"></i>
+        <div id="explorer" class="win">
+            <div class="win-bar">
+                <span style="font-size:10px; font-weight:900;">EXPLORER: /ROOT</span>
+                <i data-lucide="x" onclick="ui.toggle('explorer')" style="cursor:pointer"></i>
             </div>
             <div class="win-body">
-                <div id="output" style="color:#94a3b8; margin-bottom:15px;">> Sovereign Kernel v1.0.0 Online...</div>
-                <input id="input" type="text" class="console-input" placeholder="Enter intent..." onkeypress="ui.exec(event)">
-            </div>
-        </div>
-
-        <div id="music" class="win">
-            <div class="win-head">
-                <span style="font-size:10px; font-weight:700; opacity:0.5;">PSE // AUDIO CORE</span>
-                <i data-lucide="x" size="16" onclick="ui.close('music')" style="cursor:pointer"></i>
-            </div>
-            <div class="win-body" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;">
-                <div style="width:60px; height:60px; border:1px solid #4ade80; border-radius:50%; display:flex; align-items:center; justify-content:center; opacity:0.3;">
-                    <i data-lucide="play" color="#4ade80"></i>
+                <div style="margin-bottom:20px; display:flex; gap:10px;">
+                    <label style="background:var(--accent); padding:10px 15px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;">
+                        IMPORT FILE <input type="file" id="file-input" style="display:none;" onchange="fs.import(this)">
+                    </label>
+                    <button onclick="fs.clear()" style="background:rgba(248,113,113,0.2); border:1px solid #f87171; color:#f87171; padding:8px 15px; border-radius:8px; font-size:11px;">WIPE DRIVE</button>
                 </div>
-                <span style="font-size:10px; letter-spacing:2px; opacity:0.4;">READY FOR STREAM</span>
-            </div>
-        </div>
-
-        <div id="vault-view" class="vault-overlay">
-            <div style="text-align:center; width:80%;">
-                <span style="color:#f87171; font-size:10px; font-weight:700; letter-spacing:3px;">ASSET PURGE ACTIVE</span>
-                <div id="timer-bar" style="width:100%; height:1px; background:#f87171; margin:20px 0;"></div>
-                <p id="vault-content" style="font-family:serif; font-style:italic; font-size:18px;">"The future belongs to the Sovereign Operator."</p>
-                <p style="font-size:10px; opacity:0.3; margin-top:30px;">Purging in <span id="v-secs">60</span>s</p>
+                <div id="file-display" class="file-list">
+                    <div style="opacity:0.3; text-align:center; padding:40px;">Drive Empty.</div>
+                </div>
             </div>
         </div>
 
         <div class="taskbar">
-            <div class="sys-tray">
-                <div class="pulse-trigger" onclick="ui.pulse()">
-                    <div id="p-dot" class="pulse-dot"></div>
-                    <span id="p-txt" style="font-size:9px; font-weight:700; opacity:0.4;">IDLE</span>
-                </div>
-            </div>
-            <div id="clock" style="font-size:11px; font-weight:600; opacity:0.4;">12:00 PM</div>
+            <span style="font-size:10px; opacity:0.4; font-weight:bold;">NEXUS_SYS_v4</span>
+            <span id="clock" style="font-size:11px; opacity:0.4;">00:00</span>
         </div>
     </div>
 
@@ -146,46 +73,61 @@
         lucide.createIcons();
 
         const ui = {
-            open: (id) => document.getElementById(id).classList.add('active'),
-            close: (id) => document.getElementById(id).classList.remove('active'),
-            exec: (e) => {
-                if (e.key === 'Enter') {
-                    const out = document.getElementById('output');
-                    out.innerHTML += `<br><span style="color:#fff">> ${e.target.value}</span>`;
-                    e.target.value = '';
-                    out.parentElement.scrollTop = out.parentElement.scrollHeight;
+            toggle: (id) => document.getElementById(id).classList.toggle('active')
+        };
+
+        const fs = {
+            // Local Storage used for persistence in this demo
+            // Can be upgraded to IndexedDB for large files
+            db: JSON.parse(localStorage.getItem('nexus_fs') || '[]'),
+            
+            save: () => localStorage.setItem('nexus_fs', JSON.stringify(fs.db)),
+            
+            import: (input) => {
+                const file = input.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    fs.db.push({ name: file.name, size: file.size, type: file.type, date: new Date().toLocaleDateString() });
+                    fs.save();
+                    fs.render();
+                };
+                reader.readAsDataURL(file);
+            },
+
+            clear: () => {
+                if(confirm("Confirm system wipe?")) {
+                    fs.db = [];
+                    fs.save();
+                    fs.render();
                 }
             },
-            pulse: () => {
-                const dot = document.getElementById('p-dot');
-                const txt = document.getElementById('p-text');
-                dot.classList.toggle('active');
-                document.getElementById('p-txt').innerText = dot.classList.contains('active') ? "SENSING" : "IDLE";
+
+            render: () => {
+                const container = document.getElementById('file-display');
+                if (fs.db.length === 0) {
+                    container.innerHTML = '<div style="opacity:0.3; text-align:center; padding:40px;">Drive Empty.</div>';
+                    return;
+                }
+                container.innerHTML = fs.db.map(f => `
+                    <div class="file-item">
+                        <i data-lucide="file-text" size="14" style="opacity:0.5"></i>
+                        <div style="flex:1">
+                            <div>${f.name}</div>
+                            <div style="font-size:9px; opacity:0.4;">${(f.size/1024).toFixed(1)} KB | ${f.date}</div>
+                        </div>
+                        <i data-lucide="more-vertical" size="14" style="opacity:0.3"></i>
+                    </div>
+                `).join('');
+                lucide.createIcons();
             }
         };
 
-        function ui_vault() {
-            const overlay = document.getElementById('vault-view');
-            const bar = document.getElementById('timer-bar');
-            overlay.classList.add('active');
-            let t = 60;
-            const iv = setInterval(() => {
-                t--;
-                document.getElementById('v-secs').innerText = t;
-                bar.style.width = (t/60*100) + "%";
-                if(t <= 0) {
-                    clearInterval(iv);
-                    overlay.classList.remove('active');
-                }
-            }, 1000);
-        }
-
-        // Setup Vault specifically
-        document.querySelector('[onclick="ui.open(\'vault\')"]').setAttribute('onclick', 'ui_vault()');
-
+        // Init
+        fs.render();
         setInterval(() => {
-            const d = new Date();
-            document.getElementById('clock').innerText = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
         }, 1000);
     </script>
 </body>
